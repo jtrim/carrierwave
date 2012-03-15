@@ -59,9 +59,32 @@ end
             end
           end
 
-          it "should have a url" do
-            unless fog_credentials[:provider] == 'Local'
-              @fog_file.url.should_not be_nil
+          context "with fog_host" do
+            context "when a fog_host is a proc" do
+
+              let(:fog_host) { proc { "http://foo.bar" } }
+              before { @uploader.stub(:fog_host).and_return(fog_host) }
+
+              describe "args passed to proc" do
+                let(:fog_host) { proc { |storage| storage.should be_instance_of ::CarrierWave::Storage::Fog::File } }
+
+                it "should be the uploader" do
+                  @fog_file.public_url
+                end
+              end
+
+              it "should have a fog_host rooted public_url" do
+                @fog_file.public_url.should == 'http://foo.bar/uploads/test.jpg'
+              end
+
+              it "should have a fog_host rooted url" do
+                @fog_file.url.should == 'http://foo.bar/uploads/test.jpg'
+              end
+
+              it "should always have the same fog_host rooted url" do
+                @fog_file.url.should == 'http://foo.bar/uploads/test.jpg'
+                @fog_file.url.should == 'http://foo.bar/uploads/test.jpg'
+              end
             end
           end
         end
